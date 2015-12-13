@@ -16,6 +16,17 @@
 }
 
 #spreadsheetcontainer {
-	max-height:95vh;
+	min-height:80%;
+	min-height:80vh;
+	max-height:80%;
+	max-height:80vh;
 	overflow:auto;
+}
+
+.ht_master {
+	overflow:auto;
+}
+
+.wtHolder {
+	width:100%;
 }

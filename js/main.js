@@ -28,13 +28,16 @@ function getNumberOfPayments(LoanTerm,RepaymentType) {
 
 function getRepaymentAmount(LoanAmount,AnnualInterestRate,RepaymentFrequency,NumberOfPayments,LoanType) {
 	EffectiveInterest = getEffectiveInterest(AnnualInterestRate,RepaymentFrequency);
+	console.log(EffectiveInterest);
 	if(LoanType == 'PI') {
-		numerator = EffectiveInterest*(Math.pow(1+EffectiveInterest,NumberOfPayments));
-		denominator = (Math.pow(1+EffectiveInterest,NumberOfPayments))-1;
+		numerator = EffectiveInterest*(Math.pow((1+EffectiveInterest),NumberOfPayments));
+		denominator = (Math.pow((1+EffectiveInterest),NumberOfPayments))-1;
 		amount = LoanAmount*numerator/denominator;
 	} else {
 		amount = LoanAmount*EffectiveInterest;
 	}
+
+	console.log(amount);
 	return amount;
 }
 
@@ -84,12 +87,12 @@ function getRepaymentDates(StartDate,RepaymentFrequency,NumberOfPayments) {
 		break;
 	}
 	arrDates = [];
-	arrDates.push([StartDate]);
+	arrDates.push({Date:StartDate});
 	var start = moment(StartDate);
 	for(payment = 0; payment < NumberOfPayments; payment++) {
 		start.add(addObj);
 		strDate = start.format('YYYY-MM-DD')
-		arrDates.push([strDate]);
+		arrDates.push({Date:strDate});
 	}
 	return arrDates;
 }
@@ -100,27 +103,30 @@ function generateFormulas(data,LoanAmount,AnnualInterestRate,RepaymentFrequency,
 	for(row in data) {
 		if(row == 0) {
 			
-			data[row].push(LoanAmount);
+			data[row]['LoanAmount'] = LoanAmount;
 			if(Offset == "Yes") {
-				data[row].push(((LoanAmount-OffsetBalance)*EffectiveInterestRate));
+				initialInterest = (LoanAmount-OffsetBalance)*EffectiveInterestRate;
+				data[row]['Interest'] = initialInterest;
 			} else {
-				data[row].push((LoanAmount*EffectiveInterestRate));
+				initialInterest = LoanAmount*EffectiveInterestRate;
+				data[row]['Interest'] = initialInterest;
 			}
-			data[row].push(RepaymentAmount)
+			data[row]['RepaymentAmount'] = RepaymentAmount
 			
 			console.log(data[row]);
 		} else {
 			
 			prevRowLoanAmountFormula = '=B'+row+'+C'+row+'-D'+row;
-			data[row].push(prevRowLoanAmountFormula);
+			data[row]['LoanAmount'] = prevRowLoanAmountFormula;
 
-			prevRowInterestFormula = '=B'+(parseInt(row)+1)+'*'+EffectiveInterestRate;
                         if(Offset == "Yes") {
-                                data[row].push(((LoanAmount-OffsetBalance)*EffectiveInterestRate).toFixed(2));
+				prevRowInterestFormula = '=(B'+(parseInt(row)+1)+'-E'+(parseInt(row)+1)+')*'+EffectiveInterestRate;
+                                data[row]['Interest'] = (LoanAmount-OffsetBalance)*EffectiveInterestRate;
                         } else {
-                                data[row].push(prevRowInterestFormula);
+				prevRowInterestFormula = '=B'+(parseInt(row)+1)+'*'+EffectiveInterestRate;
+                                data[row]['Interest'] = prevRowInterestFormula;
                         }
-			data[row].push(RepaymentAmount.toFixed(2));
+			data[row]['RepaymentAmount'] = RepaymentAmount;
 			
 		}
 	}
@@ -130,7 +136,7 @@ function generateFormulas(data,LoanAmount,AnnualInterestRate,RepaymentFrequency,
 
 function DisplaySpreadsheet(data) {
 	var sheet = $('#spreadsheet');
-	sdata = data;
+	console.log(data);
 
 	sheet.handsontable({
 		data:data,
@@ -138,7 +144,29 @@ function DisplaySpreadsheet(data) {
 		colHeaders: true,
 		contextMenu: true,
 		manualColumnResize: true,
-		formulas: true
+		formulas: true,
+		colHeaders: ['Date','Amount Owed','Interest','Repayments'],
+		columns: [
+			{
+				data:'Date'
+			},
+			{
+				data: 'LoanAmount',
+				type: 'numeric',
+				format: '$0,0.00'
+			},
+			{
+				data: 'Interest',
+				type: 'numeric',
+				format: '$0,0.00'
+			},
+			{
+				data: 'RepaymentAmount',
+				type: 'numeric',
+				format: '$0,0.00'
+			},
+
+		]
 	});
 }
 
