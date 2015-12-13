@@ -28,7 +28,6 @@ function getNumberOfPayments(LoanTerm,RepaymentType) {
 
 function getRepaymentAmount(LoanAmount,AnnualInterestRate,RepaymentFrequency,NumberOfPayments,LoanType) {
 	EffectiveInterest = getEffectiveInterest(AnnualInterestRate,RepaymentFrequency);
-	console.log(EffectiveInterest);
 	if(LoanType == 'PI') {
 		numerator = EffectiveInterest*(Math.pow((1+EffectiveInterest),NumberOfPayments));
 		denominator = (Math.pow((1+EffectiveInterest),NumberOfPayments))-1;
@@ -37,7 +36,6 @@ function getRepaymentAmount(LoanAmount,AnnualInterestRate,RepaymentFrequency,Num
 		amount = LoanAmount*EffectiveInterest;
 	}
 
-	console.log(amount);
 	return amount;
 }
 
@@ -113,7 +111,6 @@ function generateFormulas(data,LoanAmount,AnnualInterestRate,RepaymentFrequency,
 			}
 			data[row]['RepaymentAmount'] = RepaymentAmount
 			
-			console.log(data[row]);
 		} else {
 			
 			prevRowLoanAmountFormula = '=B'+row+'+C'+row+'-D'+row;
@@ -136,7 +133,6 @@ function generateFormulas(data,LoanAmount,AnnualInterestRate,RepaymentFrequency,
 
 function DisplaySpreadsheet(data) {
 	var sheet = $('#spreadsheet');
-	console.log(data);
 
 	sheet.handsontable({
 		data:data,
@@ -193,9 +189,6 @@ function CalculateMortgage() {
 	
 	DisplaySpreadsheet(arrMortgageData);
 
-	//console.log(arrPaymentDates);
-
-	//console.log(objFields);
 }
 
 $().ready(function(){
