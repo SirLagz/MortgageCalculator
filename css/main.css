@@ -11,19 +11,11 @@
 	height:5%;
 }
 
-#spreadsheet {
-	height:90%;
+#LoanOffsetAccountBalanceGroup {
+	display:none;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
+#spreadsheetcontainer {
+	max-height:95vh;
+	overflow:auto;
+}
