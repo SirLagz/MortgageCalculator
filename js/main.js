@@ -10,7 +10,6 @@ function getDivisor(RepaymentType) {
                         payments = 52;
                 break;
         }
-
 	return payments
 }
 
@@ -35,7 +34,6 @@ function getRepaymentAmount(LoanAmount,AnnualInterestRate,RepaymentFrequency,Num
 	} else {
 		amount = LoanAmount*EffectiveInterest;
 	}
-
 	return amount;
 }
 
@@ -46,7 +44,7 @@ function getMortgageDetails() {
 		field = $(val);
 		fieldname = field.attr('id');
 		fieldvalue = field.val();
-		if(fieldname === 'LoanAmount') {
+		if(fieldname === 'LoanAmount' || fieldname === 'LoanOffsetAccountBalance') {
 			objFields[fieldname] = parseInt(fieldvalue);
 		} else if(fieldname === 'LoanInterestRate') {
 			objFields[fieldname] = fieldvalue/100;
@@ -54,14 +52,12 @@ function getMortgageDetails() {
 			objFields[fieldname] = fieldvalue;
 		}
 	});
-	
 	$('#MortgageDetails').find('input[type=radio]').each(function(ind,val){
 		radio = $(val);
 		if(radio.prop('checked')) {
 			objFields['LoanOffsetAccount'] = radio.val();
 		}
 	});
-
 	return objFields;
 }
 
@@ -105,6 +101,7 @@ function generateFormulas(data,LoanAmount,AnnualInterestRate,RepaymentFrequency,
 			if(Offset == "Yes") {
 				initialInterest = (LoanAmount-OffsetBalance)*EffectiveInterestRate;
 				data[row]['Interest'] = initialInterest;
+				data[row]['OffsetBalance'] = OffsetBalance;
 			} else {
 				initialInterest = LoanAmount*EffectiveInterestRate;
 				data[row]['Interest'] = initialInterest;
@@ -112,37 +109,30 @@ function generateFormulas(data,LoanAmount,AnnualInterestRate,RepaymentFrequency,
 			data[row]['RepaymentAmount'] = RepaymentAmount
 			
 		} else {
-			
 			prevRowLoanAmountFormula = '=B'+row+'+C'+row+'-D'+row;
 			data[row]['LoanAmount'] = prevRowLoanAmountFormula;
 
                         if(Offset == "Yes") {
 				prevRowInterestFormula = '=(B'+(parseInt(row)+1)+'-E'+(parseInt(row)+1)+')*'+EffectiveInterestRate;
-                                data[row]['Interest'] = (LoanAmount-OffsetBalance)*EffectiveInterestRate;
+                                data[row]['Interest'] = prevRowInterestFormula;
+				data[row]['OffsetBalance'] = OffsetBalance
                         } else {
 				prevRowInterestFormula = '=B'+(parseInt(row)+1)+'*'+EffectiveInterestRate;
                                 data[row]['Interest'] = prevRowInterestFormula;
                         }
 			data[row]['RepaymentAmount'] = RepaymentAmount;
-			
 		}
 	}
 
 	return data;
 }
 
-function DisplaySpreadsheet(data) {
+function DisplaySpreadsheet(data,OffsetAccount) {
 	var sheet = $('#spreadsheet');
 
-	sheet.handsontable({
-		data:data,
-		rowHeaders: true,
-		colHeaders: true,
-		contextMenu: true,
-		manualColumnResize: true,
-		formulas: true,
-		colHeaders: ['Date','Amount Owed','Interest','Repayments'],
-		columns: [
+	if(OffsetAccount == "Yes") {
+		colHeaders = ['Date','Amount Owed','Interest','Repayments','Offset Account Balance'];
+		columns = [
 			{
 				data:'Date'
 			},
@@ -161,9 +151,55 @@ function DisplaySpreadsheet(data) {
 				type: 'numeric',
 				format: '$0,0.00'
 			},
+			{
+				data: 'OffsetBalance',
+				type: 'numeric',
+				format: '$0,0.00'
+			}
 
 		]
+
+	} else {
+		colHeaders = ['Date','Amount Owed','Interest','Repayments'];
+		columns = [
+			{
+				data:'Date'
+			},
+			{
+				data: 'LoanAmount',
+				type: 'numeric',
+				format: '$0,0.00'
+			},
+			{
+				data: 'Interest',
+				type: 'numeric',
+				format: '$0,0.00'
+			},
+			{
+				data: 'RepaymentAmount',
+				type: 'numeric',
+				format: '$0,0.00'
+			}
+
+		]
+
+	}
+
+	var hotsheet = sheet.handsontable({
+		data:data,
+		colHeaders: true,
+		contextMenu: true,
+		manualColumnResize: true,
+		formulas: true,
+		colHeaders: colHeaders,
+		columns: columns,
+		minSpareRows: 1,
+		afterScrollVertically: function(){ 
+			$('#spreadsheet').find('.wtHolder').width($('#spreadsheet').find('.wtHider').width()+15);
+		}
 	});
+
+	return hotsheet;
 }
 
 function CalculateMortgage() {
@@ -178,7 +214,7 @@ function CalculateMortgage() {
 	LoanRepaymentDate = objFields['LoanRepaymentDate'];
 	LoanRepaymentFrequency = objFields['LoanRepaymentFrequency'];
 	LoanOffsetAccount = objFields['LoanOffsetAccount'];
-	LoanOffsetAccountBalance = objFields['LoanOffsetAccoutnBalance'];
+	LoanOffsetAccountBalance = objFields['LoanOffsetAccountBalance'];
 	
 
 	NumberOfPayments = getNumberOfPayments(LoanTerm,LoanRepaymentFrequency);
@@ -186,9 +222,9 @@ function CalculateMortgage() {
 	PaymentBreakdown = getRepaymentBreakdown(LoanAmount, InitialRepaymentAmount, getEffectiveInterest(LoanInterestRate,LoanRepaymentFrequency));
 	arrPaymentDates = getRepaymentDates(LoanRepaymentDate,LoanRepaymentFrequency,NumberOfPayments);
 	arrMortgageData = generateFormulas(arrPaymentDates,LoanAmount,LoanInterestRate,LoanRepaymentFrequency,InitialRepaymentAmount,PaymentBreakdown,LoanType,LoanOffsetAccount,LoanOffsetAccountBalance);
-	
-	DisplaySpreadsheet(arrMortgageData);
+	objhot = DisplaySpreadsheet(arrMortgageData,LoanOffsetAccount);
 
+	$(objhot).find('.wtHolder').width($(objhot).find('.wtHolder').width()-60);
 }
 
 $().ready(function(){

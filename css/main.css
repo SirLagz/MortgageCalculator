@@ -15,12 +15,12 @@
 	display:none;
 }
 
-#spreadsheetcontainer {
+#spreadsheetcontainer,#graphcontainer {
 	min-height:80%;
 	min-height:80vh;
 	max-height:80%;
 	max-height:80vh;
-	overflow:auto;
+	overflow:hidden;
 }
 
 .ht_master {
@@ -28,5 +28,5 @@
 }
 
 .wtHolder {
-	width:100%;
+	width:50%;
 }
