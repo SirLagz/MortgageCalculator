@@ -222,15 +222,32 @@ function CalculateMortgage() {
 	LoanOffsetAccount = objFields['LoanOffsetAccount'];
 	LoanOffsetAccountBalance = objFields['LoanOffsetAccountBalance'];
 	
+	var postData = {LoanAmount:LoanAmount,
+			InterestRate:LoanInterestRate*100,
+			LoanTerm:LoanTerm,
+			LoanType:LoanType,
+			RepaymentDates:LoanRepaymentDate,
+			RepaymentFrequency:LoanRepaymentFrequency,
+			OffsetAccount:LoanOffsetAccount,
+			OffsetAccountBalance:LoanOffsetAccountBalance
+			}
 
-	NumberOfPayments = getNumberOfPayments(LoanTerm,LoanRepaymentFrequency);
-	InitialRepaymentAmount = getRepaymentAmount(LoanAmount,LoanInterestRate,LoanRepaymentFrequency,NumberOfPayments,LoanType);
-	PaymentBreakdown = getRepaymentBreakdown(LoanAmount, InitialRepaymentAmount, getEffectiveInterest(LoanInterestRate,LoanRepaymentFrequency));
-	arrPaymentDates = getRepaymentDates(LoanRepaymentDate,LoanRepaymentFrequency,NumberOfPayments);
-	arrMortgageData = generateFormulas(arrPaymentDates,LoanAmount,LoanInterestRate,LoanRepaymentFrequency,InitialRepaymentAmount,PaymentBreakdown,LoanType,LoanOffsetAccount,LoanOffsetAccountBalance);
-	objhot = DisplaySpreadsheet(arrMortgageData,LoanOffsetAccount);
+	$.post('ajax/getData.php',postData,function(data){
+		jsonData = $.parseJSON(data);
+		//console.log(jsonData);
+		objhot = DisplaySpreadsheet(jsonData,LoanOffsetAccount);
+		$(objhot).find('.wtHolder').width($(objhot).find('.wtHolder').width()-60);
+	});
 
-	$(objhot).find('.wtHolder').width($(objhot).find('.wtHolder').width()-60);
+	//NumberOfPayments = getNumberOfPayments(LoanTerm,LoanRepaymentFrequency);
+	//InitialRepaymentAmount = getRepaymentAmount(LoanAmount,LoanInterestRate,LoanRepaymentFrequency,NumberOfPayments,LoanType);
+	//PaymentBreakdown = getRepaymentBreakdown(LoanAmount, InitialRepaymentAmount, getEffectiveInterest(LoanInterestRate,LoanRepaymentFrequency));
+	//arrPaymentDates = getRepaymentDates(LoanRepaymentDate,LoanRepaymentFrequency,NumberOfPayments);
+	//arrMortgageData = generateFormulas(arrPaymentDates,LoanAmount,LoanInterestRate,LoanRepaymentFrequency,InitialRepaymentAmount,PaymentBreakdown,LoanType,LoanOffsetAccount,LoanOffsetAccountBalance);
+	//console.log(arrMortgageData);
+	//objhot = DisplaySpreadsheet(arrMortgageData,LoanOffsetAccount);
+
+	//$(objhot).find('.wtHolder').width($(objhot).find('.wtHolder').width()-60);
 }
 
 $().ready(function(){
