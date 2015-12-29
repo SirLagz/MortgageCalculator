@@ -93,13 +93,18 @@ function getRepaymentDates(StartDate,RepaymentFrequency,NumberOfPayments) {
 
 function generateFormulas(data,LoanAmount,AnnualInterestRate,RepaymentFrequency,RepaymentAmount,objBreakdown,LoanType,Offset,OffsetBalance) {
 	EffectiveInterestRate = getEffectiveInterest(AnnualInterestRate,RepaymentFrequency);
+	if(OffsetBalance > LoanAmount) {
+		OffsetBalanceCalc = LoanAmount;
+	} else {
+		OffsetBalanceCalc = OffsetBalance
+	}
 	
 	for(row in data) {
 		if(row == 0) {
 			
 			data[row]['LoanAmount'] = LoanAmount;
 			if(Offset == "Yes") {
-				initialInterest = (LoanAmount-OffsetBalance)*EffectiveInterestRate;
+				initialInterest = (LoanAmount-OffsetBalanceCalc)*EffectiveInterestRate;
 				data[row]['Interest'] = initialInterest;
 				data[row]['OffsetBalance'] = OffsetBalance;
 			} else {
@@ -113,7 +118,8 @@ function generateFormulas(data,LoanAmount,AnnualInterestRate,RepaymentFrequency,
 			data[row]['LoanAmount'] = prevRowLoanAmountFormula;
 
                         if(Offset == "Yes") {
-				prevRowInterestFormula = '=(B'+(parseInt(row)+1)+'-E'+(parseInt(row)+1)+')*'+EffectiveInterestRate;
+				thisrow = parseInt(row)+1;
+				prevRowInterestFormula = '=(B'+thisrow+'-if(E'+thisrow+'>B'+thisrow+',B'+thisrow+',E'+thisrow+'))*'+EffectiveInterestRate;
                                 data[row]['Interest'] = prevRowInterestFormula;
 				data[row]['OffsetBalance'] = OffsetBalance
                         } else {
